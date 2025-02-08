@@ -5,6 +5,7 @@ import org.jspecify.annotations.NonNull;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.security.cert.CertificateExpiredException;
 import java.util.concurrent.Flow;
 
 public class SseClient {
@@ -23,6 +24,8 @@ public class SseClient {
         this.listener = listener;
         this.targetUrl = targetUrl;
         this.client = client;
+
+        connect();
     }
 
     private void connect() {
@@ -31,6 +34,13 @@ public class SseClient {
                 this.targetUrl,
                 HttpResponse.BodyHandlers.fromLineSubscriber(sub)
         );
+        response.exceptionally((a) -> {
+            // TODO
+            return null;
+        });
+        response.thenAccept(e -> {
+            // TODO
+        });
     }
 
     private boolean isValidResponse(HttpResponse.ResponseInfo info) {
@@ -40,6 +50,7 @@ public class SseClient {
     private class SseBodyHandler implements Flow.Subscriber<String> {
         @Override
         public void onSubscribe(Flow.Subscription subscription) {
+            subscription.request(Long.MAX_VALUE);
         }
 
         @Override
@@ -57,7 +68,6 @@ public class SseClient {
 
         @Override
         public void onComplete() {
-
         }
     }
 }
