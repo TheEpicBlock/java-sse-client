@@ -7,9 +7,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.concurrent.Flow;
 
-public class SseClient {
-    @NonNull
-    private SseListener listener;
+public abstract class SseClient {
     @NonNull
     private HttpClient client;
     @NonNull
@@ -26,17 +24,22 @@ public class SseClient {
      */
     private @NonNull String id = "";
 
-    public SseClient(@NonNull SseListener listener, @NonNull HttpRequest targetUrl) {
-        this(listener, targetUrl, HttpClient.newHttpClient());
+    public SseClient(@NonNull HttpRequest targetUrl) {
+        this(targetUrl, HttpClient.newHttpClient());
     }
 
-    public SseClient(@NonNull SseListener listener, @NonNull HttpRequest targetUrl, @NonNull HttpClient client) {
-        this.listener = listener;
+    public SseClient(@NonNull HttpRequest targetUrl, @NonNull HttpClient client) {
         this.targetUrl = targetUrl;
         this.client = client;
 
         connect();
     }
+
+    public abstract void onEvent(SseEvent event);
+
+    public void onDisconnect() {
+
+    };
 
     private void connect() {
         var sub = new SseBodyHandler();
@@ -45,11 +48,11 @@ public class SseClient {
                 HttpResponse.BodyHandlers.fromLineSubscriber(sub)
         );
         response.exceptionally((a) -> {
-            // TODO
+            onDisconnect();
             return null;
         });
         response.thenAccept(e -> {
-            // TODO
+            onDisconnect();
         });
     }
 
@@ -58,7 +61,7 @@ public class SseClient {
     }
 
     private class SseBodyHandler implements Flow.Subscriber<String> {
-        private final StringBuilder data = new StringBuilder();
+        private StringBuilder data = null;
         private String event = null;
 
         @Override
@@ -71,12 +74,14 @@ public class SseClient {
             if (line.isEmpty()) {
                 // Dispatch the event
                 if (emitEmpty || data.length() != 0) {
-                    listener.onEvent(new SseEvent(
-                            data.toString(),
-                            event,
-                            id
+                    onEvent(new SseEvent(
+                            data == null ? null : data.toString(),
+                            id,
+                            event
                     ));
                 }
+                data = null;
+                event = null;
             } else {
                 var colonIndex = line.indexOf(':');
 
@@ -101,6 +106,7 @@ public class SseClient {
                         event = value;
                         break;
                     case "data":
+                        if (data == null) data = new StringBuilder();
                         if (data.length() != 0) data.append("\n");
                         data.append(value);
                         break;
@@ -123,4 +129,5 @@ public class SseClient {
         public void onComplete() {
         }
     }
+
 }

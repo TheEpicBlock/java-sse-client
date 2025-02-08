@@ -19,12 +19,12 @@ public class BasicClientTest {
         var server = new TestServer();
 
         var eventChannel = new Channel<SseEvent>();
-        var client = new SseClient(new SseListener() {
+        var client = new SseClient(HttpRequest.newBuilder().GET().uri(server.getUri()).timeout(Duration.ofSeconds(50)).build()) {
             @Override
             public void onEvent(SseEvent event) {
                 eventChannel.push(event);
             }
-        }, HttpRequest.newBuilder().GET().uri(server.getUri()).timeout(Duration.ofSeconds(50)).build());
+        };
 
         server.waitForConnection();
         server.sendData("test123\n");
