@@ -12,6 +12,8 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpRequest;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 
 public class BasicClientTest {
     @Test
@@ -30,5 +32,40 @@ public class BasicClientTest {
         server.sendData("test123\n");
         var n = eventChannel.waitForNext();
         Assertions.assertEquals("test123", n.data);
+    }
+
+    @Test
+    public void callbackOrder() throws IOException, InterruptedException {
+        var server = new TestServer();
+
+        var callbacks = new ArrayList<String>();
+        var client = new SseClient(HttpRequest.newBuilder().GET().uri(server.getUri()).timeout(Duration.ofSeconds(50)).build()) {
+            @Override
+            public void onEvent(SseEvent event) {
+                callbacks.add("event");
+            }
+
+            @Override
+            public void onDisconnect() {
+                callbacks.add("disconnect");
+            }
+
+            @Override
+            public void onConnect() {
+                callbacks.add("connect");
+            }
+        };
+
+        server.waitForConnection();
+        server.sendData("test123\n");
+        server.sendData("abcd\n");
+
+        server.close();
+        Thread.sleep(500);
+
+        Assertions.assertIterableEquals(
+                List.of("connect", "event", "disconnect"),
+                callbacks
+        );
     }
 }

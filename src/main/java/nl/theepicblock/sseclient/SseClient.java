@@ -41,6 +41,10 @@ public abstract class SseClient {
 
     };
 
+    public void onConnect() {
+
+    }
+
     private void connect() {
         var sub = new SseBodyHandler();
         var response = this.client.sendAsync(
@@ -66,6 +70,7 @@ public abstract class SseClient {
 
         @Override
         public void onSubscribe(Flow.Subscription subscription) {
+            onConnect();
             subscription.request(Long.MAX_VALUE);
         }
 
