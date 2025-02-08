@@ -27,7 +27,7 @@ public class BasicClientTest {
         }, HttpRequest.newBuilder().GET().uri(server.getUri()).timeout(Duration.ofSeconds(50)).build());
 
         server.waitForConnection();
-        server.sendRaw("test123\n");
+        server.sendData("test123\n");
         var n = eventChannel.waitForNext();
         Assertions.assertEquals("test123", n.data);
     }
