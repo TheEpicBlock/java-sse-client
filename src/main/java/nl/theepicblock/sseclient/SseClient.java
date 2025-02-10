@@ -10,8 +10,6 @@ import java.util.concurrent.Flow;
 public abstract class SseClient {
     @NonNull
     private HttpClient client;
-    @NonNull
-    private HttpRequest targetUrl;
     /**
      * Set to true to emit events with empty data
      */
@@ -24,12 +22,11 @@ public abstract class SseClient {
      */
     private @NonNull String id = "";
 
-    public SseClient(@NonNull HttpRequest targetUrl) {
-        this(targetUrl, HttpClient.newHttpClient());
+    public SseClient() {
+        this(HttpClient.newHttpClient());
     }
 
-    public SseClient(@NonNull HttpRequest targetUrl, @NonNull HttpClient client) {
-        this.targetUrl = targetUrl;
+    public SseClient(@NonNull HttpClient client) {
         this.client = client;
 
         connect();
@@ -45,10 +42,24 @@ public abstract class SseClient {
 
     }
 
+    public abstract void configureRequest(HttpRequest.Builder builder);
+
+    private HttpRequest createRequest() {
+        var b = HttpRequest.newBuilder();
+        b.GET();
+        b.setHeader("Accept", "text/event-stream");
+        b.setHeader("Cache-Control", "no-cache");
+        if (!id.isEmpty()) {
+            b.setHeader("Last-Event-ID", id);
+        }
+        configureRequest(b);
+        return b.build();
+    }
+
     private void connect() {
         var sub = new SseBodyHandler();
         var response = this.client.sendAsync(
-                this.targetUrl,
+                this.createRequest(),
                 HttpResponse.BodyHandlers.fromLineSubscriber(sub)
         );
         response.exceptionally((a) -> {

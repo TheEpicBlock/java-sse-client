@@ -2,7 +2,6 @@ package nl.theepicblock.sseclient.test;
 
 import nl.theepicblock.sseclient.SseClient;
 import nl.theepicblock.sseclient.SseEvent;
-import nl.theepicblock.sseclient.SseListener;
 import nl.theepicblock.sseclient.test.util.TestServer;
 import org.junit.jupiter.api.Test;
 
@@ -126,7 +125,12 @@ public class ParserTests {
         var events = new ArrayList<SseEvent>();
         AtomicBoolean disconnected = new AtomicBoolean(false);
         var server = new TestServer();
-        var client = new SseClient(HttpRequest.newBuilder().GET().uri(server.getUri()).build()) {
+        var client = new SseClient() {
+            @Override
+            public void configureRequest(HttpRequest.Builder builder) {
+                builder.uri(server.getUri());
+            }
+
             @Override
             public void onEvent(SseEvent event) {
                 events.add(event);
