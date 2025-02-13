@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit;
 
 public abstract class SseClient {
     @NonNull
-    private HttpClient client;
+    private final HttpClient client;
     protected volatile SseBodyHandler currentHandler;
     /**
      * Set to true to emit events with empty data

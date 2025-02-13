@@ -16,6 +16,7 @@ import java.util.concurrent.TimeUnit;
 
 public class BasicClientTest {
     @Test
+    @Timeout(value = 2, unit = TimeUnit.SECONDS)
     public void basicTest() throws IOException {
         var server = new TestServer();
 
@@ -39,6 +40,7 @@ public class BasicClientTest {
     }
 
     @Test
+    @Timeout(value = 2, unit = TimeUnit.SECONDS)
     public void callbackOrder() throws IOException, InterruptedException {
         var server = new TestServer();
 
@@ -79,7 +81,7 @@ public class BasicClientTest {
     }
 
     @Test
-//    @Timeout(value = 2, unit = TimeUnit.SECONDS)
+    @Timeout(value = 2, unit = TimeUnit.SECONDS)
     public void reconnect() throws IOException {
         var server = new TestServer();
 
