@@ -3,6 +3,7 @@ package nl.theepicblock.sseclient;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
+import java.io.Closeable;
 import java.net.http.HttpClient;
 import java.net.http.HttpHeaders;
 import java.net.http.HttpRequest;
@@ -12,7 +13,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Flow;
 import java.util.concurrent.TimeUnit;
 
-public abstract class SseClient {
+public abstract class SseClient implements Closeable {
     @NonNull
     private final HttpClient client;
     @Nullable
@@ -25,6 +26,7 @@ public abstract class SseClient {
      * The retry delay advised by the server. Will be null if nothing was sent.
      */
     public @Nullable Long retryDelayMillis = null;
+    private boolean isClosed;
 
     /**
      * lastEventId, is persisted across connections
@@ -100,12 +102,14 @@ public abstract class SseClient {
     }
 
     private void connect() {
+        if (isClosed) return;
+
         var isInitial = this.currentHandler == null;
         var sub = new SseBodyHandler();
         var response = this.client.sendAsync(
                 this.createRequest(),
                 (e) -> {
-                    if (isValidResponse(e.statusCode(), e.headers())) {
+                    if (isValidResponse(e.statusCode(), e.headers()) || isClosed) {
                         this.currentHandler = sub;
                         return HttpResponse.BodySubscribers.fromLineSubscriber(sub);
                     } else {
@@ -148,6 +152,14 @@ public abstract class SseClient {
             return false;
         }
         return true;
+    }
+
+    @Override
+    public void close() {
+        this.isClosed = true;
+        if (this.currentHandler != null) {
+            this.currentHandler.cancel();
+        }
     }
 
     protected class SseBodyHandler implements Flow.Subscriber<String> {
