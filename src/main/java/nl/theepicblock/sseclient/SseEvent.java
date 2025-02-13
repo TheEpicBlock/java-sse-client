@@ -5,7 +5,9 @@ import org.jspecify.annotations.NonNull;
 import java.util.Objects;
 
 public class SseEvent {
-    @NonNull
+    /**
+     * Can only be null if {@link SseClient#emitEmpty} is set to true
+     */
     public final String data;
     @NonNull
     public final String id;
