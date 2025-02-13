@@ -15,6 +15,7 @@ import java.util.concurrent.TimeUnit;
 public abstract class SseClient {
     @NonNull
     private final HttpClient client;
+    @Nullable
     protected volatile SseBodyHandler currentHandler;
     /**
      * Set to true to emit events with empty data
@@ -23,7 +24,7 @@ public abstract class SseClient {
     /**
      * The retry delay advised by the server. Will be null if nothing was sent.
      */
-    public Long retryDelayMillis = null;
+    public @Nullable Long retryDelayMillis = null;
 
     /**
      * lastEventId, is persisted across connections
@@ -69,9 +70,9 @@ public abstract class SseClient {
 
     }
 
-    public abstract void configureRequest(HttpRequest.Builder builder);
+    public abstract void configureRequest(HttpRequest.@NonNull Builder builder);
 
-    private HttpRequest createRequest() {
+    private @NonNull HttpRequest createRequest() {
         var b = HttpRequest.newBuilder();
         b.GET();
         b.setHeader("Accept", "text/event-stream");
@@ -83,7 +84,7 @@ public abstract class SseClient {
         return b.build();
     }
 
-    private void attemptReconnect(ReconnectionInfo info) {
+    private void attemptReconnect(@NonNull ReconnectionInfo info) {
         this.currentHandler.cancel();
         var timeout = onReconnect(info);
         if (timeout == null) return;
@@ -135,7 +136,7 @@ public abstract class SseClient {
         });
     }
 
-    private boolean isValidResponse(int statusCode, HttpHeaders headers) {
+    private boolean isValidResponse(int statusCode, @NonNull HttpHeaders headers) {
         var contentType = headers.firstValue("Content-Type");
         if (contentType.isEmpty()) {
             return false;

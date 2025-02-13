@@ -5,7 +5,7 @@ import org.jspecify.annotations.Nullable;
 public class ReconnectionInfo {
     private final boolean connectionFailed;
     private final boolean wasInitial;
-    private final Integer statusCode;
+    private final @Nullable Integer statusCode;
     private final boolean wasInvalid;
     private final @Nullable Throwable error;
 
