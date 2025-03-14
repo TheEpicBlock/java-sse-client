@@ -40,8 +40,6 @@ public abstract class SseClient implements Closeable {
 
     public SseClient(@NonNull HttpClient client) {
         this.client = client;
-
-        connect();
     }
 
     public abstract void onEvent(SseEvent event);
@@ -101,7 +99,7 @@ public abstract class SseClient implements Closeable {
         de.execute(task);
     }
 
-    private void connect() {
+    protected void connect() {
         if (isClosed) return;
 
         var isInitial = this.currentHandler == null;
