@@ -4,10 +4,10 @@
 
   <groupId>nl.theepicblock</groupId>
   <artifactId>java-sse-client</artifactId>
-  <version>0.3.0</version>
+  <version>0.3.1</version>
   <packaging>jar</packaging>
 
-  <name>DukeRinth</name>
+  <name>Java SSE Client</name>
   <url>https://github.com/TheEpicBlock/java-sse-client</url>
 
   <developers>

@@ -126,6 +126,10 @@ public class ParserTests {
         AtomicBoolean disconnected = new AtomicBoolean(false);
         var server = new TestServer();
         var client = new SseClient() {
+            {
+                this.connect();
+            }
+
             @Override
             public void configureRequest(HttpRequest.Builder builder) {
                 builder.uri(server.getUri());

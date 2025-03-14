@@ -22,6 +22,10 @@ public class BasicClientTest {
 
         var eventChannel = new Channel<SseEvent>();
         var client = new SseClient() {
+            {
+                this.connect();
+            }
+
             @Override
             public void configureRequest(HttpRequest.Builder builder) {
                 builder.uri(server.getUri());
@@ -46,6 +50,10 @@ public class BasicClientTest {
 
         var callbacks = new ArrayList<String>();
         var client = new SseClient() {
+            {
+                this.connect();
+            }
+
             @Override
             public void configureRequest(HttpRequest.Builder builder) {
                 builder.uri(server.getUri());
@@ -89,6 +97,7 @@ public class BasicClientTest {
         var client = new SseClient() {
             {
                 retryDelayMillis = 10L;
+                this.connect();
             }
 
             @Override
