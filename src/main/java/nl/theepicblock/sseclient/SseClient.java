@@ -85,7 +85,8 @@ public abstract class SseClient implements Closeable {
     }
 
     private void attemptReconnect(@NonNull ReconnectionInfo info) {
-        this.currentHandler.cancel();
+        var currentHandler = this.currentHandler;
+        if (currentHandler != null) currentHandler.cancel();
         var timeout = onReconnect(info);
         if (timeout == null) return;
         submitTaskDelayed(timeout, this::connect);
