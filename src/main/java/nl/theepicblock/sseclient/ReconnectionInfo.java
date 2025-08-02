@@ -8,13 +8,15 @@ public class ReconnectionInfo {
     private final @Nullable Integer statusCode;
     private final boolean wasInvalid;
     private final @Nullable Throwable error;
+    private final int numberOfRetries;
 
-    ReconnectionInfo(boolean connectionFailed, boolean wasInitial, @Nullable Integer statusCode, boolean wasInvalid, @Nullable Throwable error) {
+    ReconnectionInfo(boolean connectionFailed, boolean wasInitial, @Nullable Integer statusCode, boolean wasInvalid, @Nullable Throwable error, int numberOfRetries) {
         this.connectionFailed = connectionFailed;
         this.wasInitial = wasInitial;
         this.statusCode = statusCode;
         this.wasInvalid = wasInvalid;
         this.error = error;
+        this.numberOfRetries = numberOfRetries;
     }
 
     /**
@@ -44,5 +46,12 @@ public class ReconnectionInfo {
 
     public @Nullable Throwable error() {
         return error;
+    }
+
+    /**
+     * Which retry we're on. Always ≥1
+     */
+    public int numberOfRetries() {
+        return numberOfRetries;
     }
 }

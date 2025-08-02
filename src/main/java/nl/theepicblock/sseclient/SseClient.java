@@ -27,6 +27,7 @@ public abstract class SseClient implements Closeable {
      */
     public @Nullable Long retryDelayMillis = null;
     private boolean isClosed;
+    private int retries;
 
     /**
      * lastEventId, is persisted across connections
@@ -118,23 +119,27 @@ public abstract class SseClient implements Closeable {
         );
         response.exceptionally((err) -> {
             onDisconnect();
+            retries++;
             attemptReconnect(new ReconnectionInfo(
                     true,
                     isInitial,
                     null,
                     false,
-                    err
+                    err,
+                    retries
             ));
             return null;
         });
         response.thenAccept(e -> {
             onDisconnect();
+            retries++;
             attemptReconnect(new ReconnectionInfo(
                     false,
                     isInitial,
                     e.statusCode(),
                     isValidResponse(e.statusCode(), e.headers()),
-                    null
+                    null,
+                    retries
             ));
         });
     }
@@ -169,6 +174,7 @@ public abstract class SseClient implements Closeable {
 
         @Override
         public void onSubscribe(Flow.Subscription subscription) {
+            retries = 0;
             onConnect();
             subscription.request(Long.MAX_VALUE);
             this.subscription = subscription;
