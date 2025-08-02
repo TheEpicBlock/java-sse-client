@@ -1,15 +1,20 @@
 package nl.theepicblock.sseclient.test;
 
+import nl.theepicblock.sseclient.ReconnectionInfo;
 import nl.theepicblock.sseclient.SseClient;
 import nl.theepicblock.sseclient.SseEvent;
 import nl.theepicblock.sseclient.test.util.Channel;
 import nl.theepicblock.sseclient.test.util.TestServer;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
 import java.io.IOException;
 import java.net.http.HttpRequest;
+import java.time.Duration;
+import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -119,5 +124,47 @@ public class BasicClientTest {
         server2.sendData("beep");
         var n = eventChannel.waitForNext();
         Assertions.assertEquals("beep", n.data);
+    }
+
+    @Test
+//    @Timeout(value = 3, unit = TimeUnit.SECONDS)
+    public void connectToNonExisting() throws IOException {
+        var server = new TestServer();
+        server.close(); // Server is not actually running at the point of connecting
+
+        var eventChannel = new Channel<String>();
+        var client = new SseClient() {
+            {
+                this.connect();
+            }
+
+            @Override
+            public void configureRequest(HttpRequest.Builder builder) {
+                builder.uri(server.getUri());
+            }
+
+            @Override
+            protected @Nullable Duration onReconnect(@NonNull ReconnectionInfo reconnectionInfo) {
+                eventChannel.push("reconnect");
+                // spec says not to reconnect for major errors like this. But we're explicitly overriding
+                // that for this test
+                return Duration.ofMillis(500);
+            }
+
+            @Override
+            public void onConnect() {
+                eventChannel.push("connect");
+            }
+
+            @Override
+            public void onEvent(SseEvent event) {}
+        };
+
+        Assertions.assertEquals("reconnect", eventChannel.waitForNext());
+
+        // Now we open the server, we expect it to reconnect
+        var server2 = new TestServer(server.getPort());
+        server2.waitForConnection();
+        Assertions.assertEquals("connect", eventChannel.waitForNext());
     }
 }

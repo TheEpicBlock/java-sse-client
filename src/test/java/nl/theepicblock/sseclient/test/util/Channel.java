@@ -1,13 +1,14 @@
 package nl.theepicblock.sseclient.test.util;
 
-import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 /**
  * Doesn't contain any actually good multithreading
  */
 public class Channel<T> {
-    private SynchronousQueue<T> buffer = new SynchronousQueue<>();
+    private BlockingQueue<T> buffer = new LinkedBlockingQueue<>();
 
     public void push(T t) {
         buffer.add(t);
